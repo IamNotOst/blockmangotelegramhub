@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Blockman GO | Telegram Hub</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <style>
+        :root {
+            /* Dark Theme */
+            --bg-dark: #0F0F12;
+            --card-dark: #1A1A21;
+            --text-dark: #F0F0F5;
+            --accent-dark: #6C5CE7;
+            --accent-hover-dark: #7E6EFF;
+            --border-dark: rgba(255, 255, 255, 0.08);
+            
+            /* Light Theme */
+            --bg-light: #F8FAFC;
+            --card-light: #FFFFFF;
+            --text-light: #1E293B;
+            --accent-light: #6C5CE7;
+            --accent-hover-light: #5649C0;
+            --border-light: rgba(0, 0, 0, 0.05);
+            
+            /* Active Theme */
+            --bg: var(--bg-dark);
+            --card: var(--card-dark);
+            --text: var(--text-dark);
+            --accent: var(--accent-dark);
+            --accent-hover: var(--accent-hover-dark);
+            --border: var(--border-dark);
+            
+            /* Animations */
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.15s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: fixed;
+            transition: var(--transition);
+            touch-action: manipulation;
+        }
+
+        /* ===== Main Container ===== */
+        .app {
+            position: relative;
+            height: 100%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            padding: 24px;
+            z-index: 1;
+            overflow: hidden;
+        }
+
+        /* ===== Header ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .logo {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+            box-shadow: 0 4px 20px rgba(108, 92, 231, 0.3);
+            transition: var(--transition-fast);
+            cursor: pointer;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 24px rgba(108, 92, 231, 0.4);
+        }
+
+        .menu-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            background: var(--card);
+            transition: var(--transition-fast);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            z-index: 110;
+            position: relative;
+        }
+
+        .menu-btn:hover {
+            background: var(--accent);
+        }
+
+        .menu-line {
+            width: 20px;
+            height: 2px;
+            background: var(--text);
+            margin: 3px 0;
+            transition: var(--transition);
+            border-radius: 2px;
+        }
+
+        .menu-btn.active .menu-line:nth-child(1) {
+            transform: translateY(5px) rotate(45deg);
+        }
+
+        .menu-btn.active .menu-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-btn.active .menu-line:nth-child(3) {
+            transform: translateY(-5px) rotate(-45deg);
+        }
+
+        /* ===== Animated Text Containers ===== */
+        .text-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .text-content {
+            transition: var(--transition);
+            position: absolute;
+            width: 100%;
+        }
+
+        .fade-out {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        .fade-in {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* ===== Title ===== */
+        .title-container {
+            height: 60px;
+            margin-bottom: 8px;
+        }
+
+        .title {
+            font-size: 24px;
+            font-weight: 700;
+            text-align: center;
+            opacity: 0.95;
+        }
+
+        .subtitle-container {
+            height: 20px;
+            margin-bottom: 32px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.6;
+            text-align: center;
+        }
+
+        /* ===== Buttons Grid ===== */
+        .buttons-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 20px;
+            background: var(--card);
+            color: var(--text);
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .btn-icon {
+            width: 24px;
+            height: 24px;
+            object-fit: contain;
+            transition: var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .btn-text-container {
+            position: relative;
+            height: 20px;
+            overflow: hidden;
+            flex-grow: 1;
+            max-width: calc(100% - 36px);
+        }
+
+        .btn-text {
+            position: absolute;
+            width: 100%;
+            transition: var(--transition);
+            text-align: center;
+        }
+
+        /* ===== Side Menu ===== */
+        .menu-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 90;
+            opacity: 0;
+            pointer-events: none;
+            transition: var(--transition);
+        }
+
+        .menu-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .menu-panel {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100%;
+            background: var(--card);
+            z-index: 100;
+            padding: 24px;
+            transition: var(--transition);
+            box-shadow: 4px 0 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border);
+        }
+
+        .menu-panel.open {
+            left: 0;
+        }
+
+        .menu-title-container {
+            height: 40px;
+            margin-bottom: 32px;
+        }
+
+        .menu-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .menu-item {
+            margin-bottom: 24px;
+        }
+
+        .menu-item-title-container {
+            height: 24px;
+            margin-bottom: 12px;
+        }
+
+        .menu-item-title {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        /* ===== Modern Toggle Switches ===== */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            background: var(--bg);
+            border-radius: 12px;
+            padding: 4px;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
+            height: 40px;
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+            z-index: 2;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .toggle-option.active {
+            color: white;
+        }
+
+        .toggle-highlight {
+            position: absolute;
+            background: var(--accent);
+            border-radius: 8px;
+            height: calc(100% - 8px);
+            transition: var(--transition);
+            z-index: 1;
+            top: 4px;
+            width: calc(50% - 4px);
+        }
+
+        /* ===== Floating Particles ===== */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+            opacity: 0.3;
+        }
+
+        .particle {
+            position: absolute;
+            background: var(--accent);
+            border-radius: 50%;
+            filter: blur(1px);
+            animation: float linear infinite;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) translateX(var(--start-x));
+                opacity: 0;
+            }
+            10% {
+                opacity: var(--particle-opacity);
+            }
+            90% {
+                opacity: var(--particle-opacity);
+            }
+            100% {
+                transform: translateY(-50px) translateX(calc(var(--start-x) + var(--random-offset)));
+                opacity: 0;
+            }
+        }
+
+        /* ===== Ripple Effect ===== */
+        .ripple {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(0);
+            animation: ripple 0.6s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
+            }
+        }
+
+        /* ===== Loading Screen ===== */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        .loader-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(108, 92, 231, 0.2);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loader-text {
+            font-size: 16px;
+            opacity: 0.8;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* ===== Responsive Adjustments ===== */
+        @media (max-width: 400px) {
+            .app {
+                padding: 16px;
+            }
+            
+            .title {
+                font-size: 20px;
+            }
+            
+            .btn {
+                padding: 14px 16px;
+                font-size: 14px;
+            }
+            
+            .btn-icon {
+                width: 20px;
+                height: 20px;
+            }
+            
+            .menu-panel {
+                width: 260px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loader" id="loader">
+        <div class="loader-spinner"></div>
+        <div class="loader-text">Loading Blockman GO Hub...</div>
+    </div>
+
+    <!-- Floating Particles -->
+    <div class="particles" id="particles"></div>
+
+    <!-- Menu Overlay -->
+    <div class="menu-overlay" id="menu-overlay"></div>
+
+    <!-- Main App -->
+    <div class="app">
+        <!-- Header -->
+        <div class="header">
+            <div class="menu-btn" id="menu-btn">
+                <span class="menu-line"></span>
+                <span class="menu-line"></span>
+                <span class="menu-line"></span>
+            </div>
+            <img src="pic/avatar.png" alt="Blockman GO" class="logo" id="logo">
+        </div>
+
+        <!-- Content -->
+        <div class="title-container text-container">
+            <div class="title text-content fade-in" id="main-title">Blockman GO Hub</div>
+        </div>
+        <div class="subtitle-container text-container">
+            <div class="subtitle text-content fade-in" id="subtitle">Join our official Telegram communities</div>
+        </div>
+
+        <!-- Buttons Grid -->
+        <div class="buttons-grid">
+            <button class="btn" id="btn1">
+                <div class="btn-content">
+                    <img src="pic/pic1.png" class="btn-icon" alt="Official">
+                    <div class="btn-text-container">
+                        <div class="btn-text fade-in" id="btn1-text">Official Channel</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button class="btn" id="btn2">
+                <div class="btn-content">
+                    <img src="pic/pic2.png" class="btn-icon" alt="Global">
+                    <div class="btn-text-container">
+                        <div class="btn-text fade-in" id="btn2-text">Global Chat</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button class="btn" id="btn3">
+                <div class="btn-content">
+                    <img src="pic/pic3.png" class="btn-icon" alt="Russian">
+                    <div class="btn-text-container">
+                        <div class="btn-text fade-in" id="btn3-text">Russian Chat</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button class="btn" id="btn4">
+                <div class="btn-content">
+                    <img src="pic/pic4.png" class="btn-icon" alt="Help">
+                    <div class="btn-text-container">
+                        <div class="btn-text fade-in" id="btn4-text">Question Help</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button class="btn" id="btn5">
+                <div class="btn-content">
+                    <img src="pic/pic5.png" class="btn-icon" alt="Suggestions">
+                    <div class="btn-text-container">
+                        <div class="btn-text fade-in" id="btn5-text">Suggestions</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button class="btn" id="btn6">
+                <div class="btn-content">
+                    <img src="pic/pic6.png" class="btn-icon" alt="Custom">
+                    <div class="btn-text-container">
+                        <div class="btn-text fade-in" id="btn6-text">Custom Set</div>
+                    </div>
+                </div>
+            </button>
+            
+            <button class="btn" id="btn7">
+                <div class="btn-content">
+                    <img src="pic/pic7.png" class="btn-icon" alt="Video">
+                    <div class="btn-text-container">
+                        <div class="btn-text fade-in" id="btn7-text">Video Sharing</div>
+                    </div>
+                </div>
+            </button>
+        </div>
+    </div>
+
+    <!-- Side Menu -->
+    <div class="menu-panel" id="menu-panel">
+        <div class="menu-title-container text-container">
+            <div class="menu-title text-content fade-in" id="settings-title">Settings</div>
+        </div>
+        
+        <div class="menu-item">
+            <div class="menu-item-title-container text-container">
+                <div class="menu-item-title text-content fade-in" id="theme-label">Theme</div>
+            </div>
+            <div class="toggle-container" id="theme-toggle-container">
+                <div class="toggle-highlight" id="theme-highlight"></div>
+                <div class="toggle-option active" id="dark-option">Dark</div>
+                <div class="toggle-option" id="light-option">Light</div>
+            </div>
+        </div>
+        
+        <div class="menu-item">
+            <div class="menu-item-title-container text-container">
+                <div class="menu-item-title text-content fade-in" id="language-label">Language</div>
+            </div>
+            <div class="toggle-container" id="language-toggle-container">
+                <div class="toggle-highlight" id="language-highlight"></div>
+                <div class="toggle-option active" id="en-option">ENG</div>
+                <div class="toggle-option" id="ru-option">RUS</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ===== Telegram WebApp Initialization =====
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        
+        // ===== Loading Screen =====
+        setTimeout(() => {
+            document.getElementById('loader').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+            }, 500);
+        }, 1200);
+        
+        // ===== Prevent Scrolling/Zooming =====
+        document.body.style.overflow = 'hidden';
+        document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+        
+        // ===== Create Floating Particles =====
+        function createParticles() {
+            const container = document.getElementById('particles');
+            const particleCount = window.innerWidth < 400 ? 15 : 25;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 4 + 2;
+                const posX = Math.random() * 100;
+                const delay = Math.random() * 10;
+                const duration = Math.random() * 25 + 15;
+                const opacity = Math.random() * 0.4 + 0.2;
+                const offset = (Math.random() - 0.5) * 40;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.setProperty('--start-x', `${posX}%`);
+                particle.style.setProperty('--random-offset', `${offset}px`);
+                particle.style.setProperty('--particle-opacity', opacity);
+                particle.style.bottom = `-20px`;
+                particle.style.animationDuration = `${duration}s`;
+                particle.style.animationDelay = `${delay}s`;
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // ===== Ripple Effect =====
+        function createRipple(event) {
+            const btn = event.currentTarget;
+            const circle = document.createElement("span");
+            const rect = btn.getBoundingClientRect();
+            const diameter = Math.max(rect.width, rect.height);
+            const radius = diameter / 2;
+
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+
+            const ripple = btn.getElementsByClassName("ripple")[0];
+            if (ripple) ripple.remove();
+
+            btn.appendChild(circle);
+        }
+        
+        // ===== Menu Toggle =====
+        const menuBtn = document.getElementById('menu-btn');
+        const menuPanel = document.getElementById('menu-panel');
+        const menuOverlay = document.getElementById('menu-overlay');
+        
+        function toggleMenu() {
+            menuBtn.classList.toggle('active');
+            menuPanel.classList.toggle('open');
+            menuOverlay.classList.toggle('active');
+        }
+        
+        menuBtn.addEventListener('click', toggleMenu);
+        menuOverlay.addEventListener('click', toggleMenu);
+        
+        // ===== Theme Toggle =====
+        const themeContainer = document.getElementById('theme-toggle-container');
+        const darkOption = document.getElementById('dark-option');
+        const lightOption = document.getElementById('light-option');
+        const themeHighlight = document.getElementById('theme-highlight');
+        
+        themeHighlight.style.width = `calc(50% - 4px)`;
+        
+        function updateTheme(isLight) {
+            if (isLight) {
+                darkOption.classList.remove('active');
+                lightOption.classList.add('active');
+                themeHighlight.style.transform = 'translateX(calc(100% + 4px))';
+            } else {
+                darkOption.classList.add('active');
+                lightOption.classList.remove('active');
+                themeHighlight.style.transform = 'translateX(0)';
+            }
+            
+            document.body.style.setProperty('--bg', isLight ? 'var(--bg-light)' : 'var(--bg-dark)');
+            document.body.style.setProperty('--card', isLight ? 'var(--card-light)' : 'var(--card-dark)');
+            document.body.style.setProperty('--text', isLight ? 'var(--text-light)' : 'var(--text-dark)');
+            document.body.style.setProperty('--accent', isLight ? 'var(--accent-light)' : 'var(--accent-dark)');
+            document.body.style.setProperty('--accent-hover', isLight ? 'var(--accent-hover-light)' : 'var(--accent-hover-dark)');
+            document.body.style.setProperty('--border', isLight ? 'var(--border-light)' : 'var(--border-dark)');
+            
+            localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        }
+        
+        darkOption.addEventListener('click', () => updateTheme(false));
+        lightOption.addEventListener('click', () => updateTheme(true));
+        
+        // ===== Language Toggle =====
+        const languageContainer = document.getElementById('language-toggle-container');
+        const enOption = document.getElementById('en-option');
+        const ruOption = document.getElementById('ru-option');
+        const languageHighlight = document.getElementById('language-highlight');
+        
+        languageHighlight.style.width = `calc(50% - 4px)`;
+        
+        const translations = {
+            en: {
+                title: "Blockman GO Hub",
+                subtitle: "Join our official Telegram communities",
+                settings: "Settings",
+                theme: "Theme",
+                language: "Language",
+                dark: "Dark",
+                light: "Light",
+                en: "ENG",
+                ru: "RUS",
+                buttons: [
+                    "Official Channel",
+                    "Global Chat",
+                    "Russian Chat",
+                    "Question Help",
+                    "Suggestions",
+                    "Custom Set",
+                    "Video Sharing"
+                ]
+            },
+            ru: {
+                title: "Blockman GO Хабы",
+                subtitle: "Присоединяйтесь к нашим сообществам",
+                settings: "Настройки",
+                theme: "Тема",
+                language: "Язык",
+                dark: "Тёмная",
+                light: "Светлая",
+                en: "АНГЛ",
+                ru: "РУС",
+                buttons: [
+                    "Официальный канал",
+                    "Глобальный чат",
+                    "Русский чат",
+                    "Вопросы / Помощь",
+                    "Предложения",
+                    "Кастомные скины",
+                    "Поделиться видео"
+                ]
+            }
+        };
+        
+        function updateLanguage(isRU) {
+            if (isRU) {
+                enOption.classList.remove('active');
+                ruOption.classList.add('active');
+                languageHighlight.style.transform = 'translateX(calc(100% + 4px))';
+            } else {
+                enOption.classList.add('active');
+                ruOption.classList.remove('active');
+                languageHighlight.style.transform = 'translateX(0)';
+            }
+            
+            const lang = isRU ? 'ru' : 'en';
+            
+            const textElements = document.querySelectorAll('.text-content');
+            textElements.forEach(el => el.classList.add('fade-out'));
+            
+            setTimeout(() => {
+                document.getElementById('main-title').textContent = translations[lang].title;
+                document.getElementById('subtitle').textContent = translations[lang].subtitle;
+                document.getElementById('settings-title').textContent = translations[lang].settings;
+                document.getElementById('theme-label').textContent = translations[lang].theme;
+                document.getElementById('language-label').textContent = translations[lang].language;
+                document.getElementById('dark-option').textContent = translations[lang].dark;
+                document.getElementById('light-option').textContent = translations[lang].light;
+                document.getElementById('en-option').textContent = translations[lang].en;
+                document.getElementById('ru-option').textContent = translations[lang].ru;
+                
+                for (let i = 1; i <= 7; i++) {
+                    document.getElementById(`btn${i}-text`).textContent = translations[lang].buttons[i-1];
+                }
+                
+                setTimeout(() => {
+                    textElements.forEach(el => {
+                        el.classList.remove('fade-out');
+                        el.classList.add('fade-in');
+                        setTimeout(() => el.classList.remove('fade-in'), 300);
+                    });
+                }, 10);
+            }, 300);
+            
+            localStorage.setItem('language', isRU ? 'ru' : 'en');
+        }
+        
+        enOption.addEventListener('click', () => updateLanguage(false));
+        ruOption.addEventListener('click', () => updateLanguage(true));
+        
+        // ===== Button Links =====
+        const links = {
+            en: [
+                "https://t.me/Official_Blockman_Go",
+                "https://t.me/+dwdr4-4NpJI0Mzhi",
+                "https://t.me/+aj__yrEi65xlNTEy",
+                "https://t.me/+emWtZ1H0JMFmMzFi",
+                "https://t.me/+WnbzbMAOgTcwYTY6",
+                "https://t.me/+0vAHf-uLLn4xNzBi",
+                "https://t.me/+UawL1E0oNeUyMTky"
+            ],
+            ru: [
+                "https://t.me/Official_Blockman_Go",
+                "https://t.me/+dwdr4-4NpJI0Mzhi",
+                "https://t.me/+aj__yrEi65xlNTEy",
+                "https://t.me/+emWtZ1H0JMFmMzFi",
+                "https://t.me/+WnbzbMAOgTcwYTY6",
+                "https://t.me/+0vAHf-uLLn4xNzBi",
+                "https://t.me/+UawL1E0oNeUyMTky"
+            ]
+        };
+        
+        for (let i = 1; i <= 7; i++) {
+            const btn = document.getElementById(`btn${i}`);
+            
+            btn.addEventListener('click', createRipple);
+            
+            btn.addEventListener('click', () => {
+                const isRU = ruOption.classList.contains('active');
+                tg.openLink(links[isRU ? 'ru' : 'en'][i-1], { try_instant_view: true });
+                
+                btn.style.transform = 'scale(0.96)';
+                setTimeout(() => btn.style.transform = '', 150);
+            });
+        }
+        
+        // ===== Logo Interaction =====
+        const logo = document.getElementById('logo');
+        logo.addEventListener('click', () => {
+            logo.style.transform = 'scale(1.1) rotate(10deg)';
+            setTimeout(() => logo.style.transform = '', 400);
+        });
+        
+        // ===== Initialize =====
+        createParticles();
+        
+        // Load saved settings
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'light') {
+            updateTheme(true);
+        }
+        
+        const savedLanguage = localStorage.getItem('language');
+        if (savedLanguage === 'ru') {
+            updateLanguage(true);
+        }
+        
+        // Disable context menu
+        document.addEventListener('contextmenu', (e) => e.preventDefault());
+    </script>
+</body>
+</html>
